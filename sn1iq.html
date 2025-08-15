@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SERENIQ — Find Your Peace</title>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Merriweather:wght@300;400;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --glass: rgba(255,255,255,.10);
+    --glass-2: rgba(255,255,255,.06);
+    --border: rgba(255,255,255,.18);
+    --brand: #6ee7b7;
+    --brand-2: #34d399;
+    --brand-3: #10b981;
+    --text: #f7fafc;
+    --shadow: 0 15px 45px rgba(0,0,0,.35);
+    --radius: 22px;
+    --radius-2: 32px;
+    --maxw: 1200px;
+  }
+
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html, body{ height:100%; scroll-behavior:smooth; }
+  body{
+    font-family:'Poppins',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    color:var(--text); background:#0a0f14; overflow-x:hidden;
+  }
+
+  /* ===== Background Video ===== */
+  #bg-video{
+    position:fixed; inset:0; width:100%; height:100%;
+    object-fit:cover; z-index:-5; filter:brightness(.75) saturate(1.05) contrast(1.05);
+  }
+
+  /* Parallax layers (soft glows & texture) */
+  .parallax{
+    position:fixed; inset:0; pointer-events:none;
+  }
+  .layer-glow-1, .layer-glow-2, .layer-glow-3{
+    position:absolute; inset:0; mix-blend-mode:screen;
+  }
+  .layer-glow-1{
+    background:
+      radial-gradient(900px 500px at 15% 20%, rgba(110,231,183,.25), transparent 60%),
+      radial-gradient(800px 500px at 85% 70%, rgba(59,130,246,.18), transparent 60%);
+    z-index:-4;
+  }
+  .layer-glow-2{
+    background:
+      radial-gradient(700px 400px at 60% 35%, rgba(255,255,255,.10), transparent 60%),
+      radial-gradient(600px 360px at 30% 80%, rgba(16,185,129,.18), transparent 60%);
+    z-index:-3;
+  }
+  /* Particle canvas above glows, below UI */
+  #particles{
+    position:fixed; inset:0; z-index:-2; pointer-events:none;
+  }
+  /* Subtle dark overlay for readability */
+  .overlay{
+    position:fixed; inset:0; z-index:-1;
+    background:linear-gradient(180deg,rgba(0,0,0,.45),rgba(0,0,0,.55));
+    backdrop-filter: blur(2px);
+  }
+
+  /* ===== Header ===== */
+  .header{
+    position:fixed; inset-inline:0; top:0; z-index:1000;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:18px; padding:16px clamp(16px,4vw,48px);
+    background:var(--glass); border-bottom:1px solid var(--border);
+    backdrop-filter: blur(14px) saturate(1.25);
+    transition: padding .25s ease, background .25s ease, border-color .25s ease;
+  }
+  .header.scrolled{
+    padding:10px clamp(12px,3vw,32px);
+    background:rgba(10,12,14,.45); border-color:rgba(255,255,255,.12);
+  }
+  .logo{
+    font-weight:700; letter-spacing:1px;
+    font-size: clamp(1.35rem, 2.6vw, 1.85rem);
+    text-shadow: 0 2px 10px rgba(0,0,0,.35);
+  }
+  .nav{ display:flex; gap: clamp(12px, 3vw, 28px); }
+  .nav a{
+    color:var(--text); text-decoration:none; font-weight:500;
+    font-size:.98rem; padding:10px 14px; border-radius:999px;
+    position:relative; overflow:hidden;
+  }
+  .nav a::after{
+    content:""; position:absolute; left:50%; bottom:6px; width:0; height:2px;
+    background:linear-gradient(90deg,var(--brand-2),var(--brand-3));
+    transform: translateX(-50%); transition: width .25s ease;
+  }
+  .nav a:hover::after{ width:60%; }
+
+  /* ===== Hero ===== */
+  .hero{
+    min-height:100svh; display:grid; place-items:center; text-align:center;
+    padding: clamp(120px, 16vh, 180px) 16px 64px;
+    perspective:1200px;
+  }
+  .hero-card{
+    max-width: 1000px; padding: clamp(20px,3vw,28px);
+    border-radius:var(--radius-2);
+    background:linear-gradient(180deg,rgba(255,255,255,.09),rgba(255,255,255,.04));
+    border:1px solid rgba(255,255,255,.18); box-shadow:var(--shadow);
+    transform-style:preserve-3d;
+  }
+  .hero h1{
+    font-family:'Merriweather',serif; font-weight:300;
+    font-size: clamp(2.4rem, 6vw, 4.6rem);
+    letter-spacing:.5px; margin-bottom:14px; opacity:0; transform: translateY(20px);
+    animation: rise .9s .1s both ease;
+  }
+  .subtitle{
+    font-size: clamp(1.05rem, 2.2vw, 1.3rem); line-height:1.85;
+    opacity:.95; max-width: 920px; margin-inline:auto; opacity:0;
+    animation: fadeIn 1s .25s both ease;
+  }
+  .cta{
+    display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-top:24px;
+    opacity:0; animation: fadeIn .8s .45s both ease;
+  }
+  .btn{
+    appearance:none; border:none; cursor:pointer;
+    padding: 14px 26px; border-radius:999px; font-weight:700; letter-spacing:.2px;
+    display:inline-flex; align-items:center; gap:10px; text-decoration:none; color:#fff;
+    box-shadow: 0 10px 22px rgba(0,0,0,.25);
+    transition: transform .22s ease, box-shadow .22s ease, background .22s ease;
+  }
+  .btn-primary{
+    background:linear-gradient(135deg,var(--brand-2),var(--brand-3));
+  }
+  .btn-primary:hover{
+    transform: translateY(-4px); box-shadow:0 16px 34px rgba(16,185,129,.45);
+    background:linear-gradient(135deg,var(--brand),var(--brand-3));
+  }
+  .btn-ghost{
+    background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.24);
+  }
+  .btn-ghost:hover{
+    transform: translateY(-4px); box-shadow:0 14px 32px rgba(255,255,255,.22);
+    background:rgba(255,255,255,.18);
+  }
+  .scroll-indicator{
+    position:absolute; bottom:28px; left:50%; transform:translateX(-50%);
+    font-size:.95rem; letter-spacing:1px; opacity:.85; padding:8px 14px;
+    border-radius:999px; background:rgba(0,0,0,.35); border:1px solid rgba(255,255,255,.16);
+    backdrop-filter: blur(6px); animation:bounce 1.8s infinite;
+  }
+
+  /* ===== Sections ===== */
+  .section{ padding: clamp(64px, 8vw, 110px) clamp(18px,6vw,50px); }
+  .panel{
+    margin:0 auto; max-width:var(--maxw); padding: clamp(24px,3vw,40px);
+    border-radius:var(--radius-2);
+    background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.03));
+    border:1px solid rgba(255,255,255,.16); box-shadow:var(--shadow);
+  }
+  .section h2{
+    font-family:'Merriweather',serif; font-weight:300; letter-spacing:.5px;
+    font-size: clamp(1.9rem, 4vw, 3rem); text-align:center; margin-bottom:14px;
+  }
+  .section p{
+    text-align:center; font-size: clamp(1rem, 2vw, 1.12rem);
+    line-height:1.85; opacity:.95; max-width:980px; margin:0 auto;
+  }
+
+  /* Features Grid */
+  .features{
+    display:grid; gap:22px; margin-top: clamp(34px, 5vw, 54px);
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+  .feature{
+    text-align:center; padding: 26px 20px; border-radius:var(--radius);
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.18);
+    transition: transform .25s ease, box-shadow .25s ease, background .25s ease;
+    position:relative; overflow:hidden;
+  }
+  .feature:hover{
+    transform: translateY(-6px); box-shadow:0 16px 38px rgba(0,0,0,.28);
+    background:rgba(255,255,255,.09);
+  }
+  .feature::after{
+    content:""; position:absolute; inset:-1px; border-radius:inherit; pointer-events:none;
+    background: conic-gradient(from var(--ang,0deg), rgba(110,231,183,.7), transparent 40%, rgba(59,130,246,.6), transparent 70%, rgba(236,72,153,.6), transparent 100%);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    padding:1px; opacity:.25; transition:opacity .3s ease;
+  }
+  .feature:hover::after{ opacity:.55; }
+  .icon{ font-size:2rem; margin-bottom:8px; }
+
+  /* Services Grid */
+  .services{
+    display:grid; gap:22px; margin-top:28px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+  .service{
+    padding:22px 18px; border-radius:var(--radius);
+    background:linear-gradient(135deg,rgba(227,242,253,.12),rgba(187,222,251,.06));
+    border:1px solid rgba(255,255,255,.18);
+    transition:transform .25s ease, box-shadow .25s ease;
+  }
+  .service:hover{ transform:translateY(-6px); box-shadow:0 14px 36px rgba(0,0,0,.28); }
+
+  /* Ambient Sound Dock */
+  .sound-dock{
+    position:fixed; right:16px; top:50%; transform:translateY(-50%);
+    display:flex; flex-direction:column; gap:10px; z-index:9999;
+  }
+  .sound-btn{
+    width:56px; height:56px; border-radius:50%; cursor:pointer;
+    display:grid; place-items:center; color:#fff; background:rgba(255,255,255,.10);
+    border:1px solid rgba(255,255,255,.22); backdrop-filter: blur(10px);
+    box-shadow: 0 10px 26px rgba(0,0,0,.35), inset 0 0 14px rgba(255,255,255,.08);
+    transition: transform .2s, box-shadow .2s, background .2s; position:relative; overflow:hidden;
+  }
+  .sound-btn:hover{ transform: translateY(-2px) scale(1.03); }
+  .sound-btn.active[data-sound="forest"]{ box-shadow: 0 0 26px rgba(16,185,129,.65), 0 10px 26px rgba(0,0,0,.35); }
+  .sound-btn.active[data-sound="rain"]{ box-shadow: 0 0 26px rgba(209,213,219,.75), 0 10px 26px rgba(0,0,0,.35); }
+  .sound-btn.active[data-sound="ocean"]{ box-shadow: 0 0 26px rgba(56,189,248,.75), 0 10px 26px rgba(0,0,0,.35); }
+
+  .volume-card{
+    width:220px; padding:12px; border-radius:16px; margin-top:6px;
+    background:rgba(0,0,0,.4); border:1px solid rgba(255,255,255,.18);
+    backdrop-filter: blur(10px); box-shadow:var(--shadow); display:none;
+  }
+  .volume-card label{ font-size:.85rem; opacity:.9; display:block; margin-bottom:6px; }
+  .volume-card input[type="range"]{ width:100%; }
+
+  /* Reveal on scroll */
+  .reveal{ opacity:0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+  .reveal.in{ opacity:1; transform: translateY(0); }
+
+  /* Keyframes */
+  @keyframes rise{ from{opacity:0; transform: translateY(24px)} to{opacity:1; transform: translateY(0)} }
+  @keyframes fadeIn{ from{opacity:0} to{opacity:1} }
+  @keyframes bounce{ 0%,100%{ transform: translateX(-50%) translateY(0) } 50%{ transform: translateX(-50%) translateY(-8px) } }
+
+  /* Responsive */
+  @media (max-width: 900px){
+    .sound-dock{ right:8px; }
+    .sound-btn{ width:52px; height:52px; }
+  }
+  @media (max-width: 640px){
+    .nav{ gap:10px; }
+    .nav a{ padding:8px 10px; font-size:.95rem; }
+    .scroll-indicator{ display:none; }
+  }
+  /* Motion sensitivity */
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Background -->
+<video id="bg-video" autoplay muted loop playsinline>
+  <source src="https://cdn.coverr.co/videos/coverr-aerial-view-of-a-forest-2011/1080p.mp4" type="video/mp4">
+</video>
+<div class="parallax">
+  <div class="layer-glow-1" data-depth="0.05" aria-hidden="true"></div>
+  <div class="layer-glow-2" data-depth="0.1" aria-hidden="true"></div>
+</div>
+<canvas id="particles" aria-hidden="true"></canvas>
+<div class="overlay" aria-hidden="true"></div>
+
+<!-- Header -->
+<header class="header" role="banner">
+  <div class="logo">SERENIQ</div>
+  <nav class="nav" aria-label="Primary">
+    <a href="#home">Home</a>
+    <a href="#about">About</a>
+    <a href="#services">Services</a>
+    <a href="#contact">Contact</a>
+  </nav>
+</header>
+
+<!-- Hero -->
+<main class="container">
+  <section id="home" class="hero" aria-label="Hero">
+    <div class="hero-card" id="heroCard">
+      <h1>Find Your Peace</h1>
+      <p class="subtitle" id="quote">
+        At Sereniq, your calm matters. We’re here to guide you from the storm to the shore — with care, tools, and community.
+      </p>
+      <div class="cta">
+        <a href="#contact" class="btn btn-primary">Get Support Now</a>
+        <a href="#about" class="btn btn-ghost">Learn More</a>
+      </div>
+    </div>
+    <div class="scroll-indicator">↓ Scroll to explore ↓</div>
+  </section>
+</main>
+
+<!-- About -->
+<section class="section" id="about" aria-labelledby="about-title">
+  <div class="panel reveal">
+    <h2 id="about-title">About SERENIQ</h2>
+    <p>
+      We blend science-backed techniques with a human touch — mood tracking, guided exercises, and uplifting content —
+      to help you grow resilience, clarity, and confidence.
+    </p>
+
+    <div class="features">
+      <div class="feature reveal">
+        <div class="icon">🧠</div>
+        <h3>Professional Counseling</h3>
+        <p>Match with licensed therapists who tailor evidence-based care to you.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="icon">🤝</div>
+        <h3>Communities</h3>
+        <p>Share your story and feel supported by people who understand.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="icon">📱</div>
+        <h3>24/7 Crisis Support</h3>
+        <p>Immediate helpline, chat, and emergency resources when you need them.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="icon">🌱</div>
+        <h3>Holistic Wellness</h3>
+        <p>Mindfulness, meditation, art therapy — care for mind, body, and spirit.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Services -->
+<section class="section" id="services" aria-labelledby="services-title">
+  <div class="panel reveal">
+    <h2 id="services-title">Our Services</h2>
+    <p>Support that meets you where you are — online or in-person, gentle yet effective.</p>
+
+    <div class="services">
+      <div class="service reveal">
+        <h3>Video Sessions</h3>
+        <p>Share what’s heavy in a calm, judgment-free space.</p>
+      </div>
+      <div class="service reveal">
+        <h3>Individual Therapy</h3>
+        <p>Personalized plans with your therapist for steady growth.</p>
+      </div>
+      <div class="service reveal">
+        <h3>AI Assistants</h3>
+        <p>Smart check-ins and routines to nudge better days.</p>
+      </div>
+      <div class="service reveal">
+        <h3>Workshops</h3>
+        <p>Skills for coping, self-care, and long-term resilience.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Contact -->
+<section class="section" id="contact" aria-labelledby="contact-title">
+  <div class="panel reveal">
+    <h2 id="contact-title">Get in Touch</h2>
+    <p>Taking the first step takes courage. We’re here to walk with you.</p>
+
+    <div class="features" style="margin-top:22px">
+      <div class="feature reveal">
+        <div class="icon">📞</div>
+        <h3>Phone Support</h3>
+        <p><a href="tel:+917872404340" style="color:#b9f6ca; text-decoration:none; font-weight:700;">+91-7872404340</a></p>
+      </div>
+      <div class="feature reveal">
+        <div class="icon">✉</div>
+        <h3>Email</h3>
+        <p><a href="mailto:weareserenic07@gmail.com" style="color:#b9f6ca; text-decoration:none; font-weight:700;">weareserenic07@gmail.com</a></p>
+      </div>
+      <div class="feature reveal">
+        <div class="icon">💬</div>
+        <h3>Live Chat</h3>
+        <p>Available 24/7 on our website.</p>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:22px; background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(16,185,129,.06)); border-color:rgba(16,185,129,.35)">
+      <h3 style="color:#b9f6ca; font-size: clamp(1.2rem, 2.6vw, 1.6rem); margin-bottom:10px;">You Are Not Alone</h3>
+      <p style="opacity:.95">
+        “Where there is life, there is hope.” — Stephen Hawking
+      </p>
+      <div class="cta" style="margin-top:14px;">
+        <a href="#contact" class="btn btn-primary">Start Your Healing Journey</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Ambient Sound Dock -->
+<div class="sound-dock" aria-label="Ambient sounds">
+  <button class="sound-btn" data-sound="forest" aria-label="Play forest sound" title="Forest">
+    <!-- Animated SVG: tree sway -->
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 2l4 6h-3l4 6h-3l4 6H6l4-6H7l4-6H8l4-6z" stroke="currentColor" stroke-width="1.2" />
+    </svg>
+  </button>
+  <button class="sound-btn" data-sound="rain" aria-label="Play rain sound" title="Rain">
+    <!-- Animated SVG: falling drops -->
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M7 3c3 5-3 5 0 10" stroke="currentColor" stroke-width="1.2"/>
+      <path d="M12 4c3 5-3 5 0 10" stroke="currentColor" stroke-width="1.2"/>
+      <path d="M17 5c3 5-3 5 0 10" stroke="currentColor" stroke-width="1.2"/>
+    </svg>
+  </button>
+  <button class="sound-btn" data-sound="ocean" aria-label="Play ocean sound" title="Ocean">
+    <!-- Animated SVG: wave -->
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M3 15c3 0 3-3 6-3s3 3 6 3 3-3 6-3" stroke="currentColor" stroke-width="1.2"/>
+    </svg>
+  </button>
+
+  <div class="volume-card" id="volumeCard" role="group" aria-label="Volume controls">
+    <label for="volume">Volume</label>
+    <input id="volume" type="range" min="0" max="1" step="0.01" value="0.6" />
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <button id="pauseAll" class="btn btn-ghost" style="padding:8px 14px; font-weight:600;">Pause</button>
+      <button id="stopAll" class="btn btn-ghost" style="padding:8px 14px; font-weight:600;">Stop</button>
+    </div>
+  </div>
+</div>
+
+<!-- Audio (online sources so it works instantly) -->
+<audio id="forest" loop crossorigin="anonymous">
+  <source src="https://files.catbox.moe/687ehs.mp3" type="audio/mpeg">
+</audio>
+<audio id="rain" loop crossorigin="anonymous">
+  <source src="https://files.catbox.moe/k21t10.mp3" type="audio/mpeg">
+</audio>
+<audio id="ocean" loop crossorigin="anonymous">
+  <source src="https://files.catbox.moe/k9zoy4.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+  /* ===== Header shrink on scroll ===== */
+  const header = document.querySelector('.header');
+  const onScroll = () => header.classList.toggle('scrolled', window.scrollY > 20);
+  document.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+  /* ===== Smooth scroll for hash links ===== */
+  document.querySelectorAll('a[href^="#"]').forEach(a=>{
+    a.addEventListener('click', e=>{
+      const id = a.getAttribute('href');
+      const target = document.querySelector(id);
+      if(target){
+        e.preventDefault();
+        target.scrollIntoView({ behavior:'smooth', block:'start' });
+        history.pushState(null, "", id);
+      }
+    });
+  });
+
+  /* ===== Reveal on scroll ===== */
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){ entry.target.classList.add('in'); io.unobserve(entry.target); }
+    });
+  }, { threshold: 0.14 });
+  document.querySelectorAll('.reveal').forEach(el=> io.observe(el));
+
+  /* ===== Parallax: scroll & mouse tilt ===== */
+  const layers = document.querySelectorAll('[data-depth]');
+  function parallaxScroll(){
+    const y = window.scrollY || window.pageYOffset;
+    layers.forEach(l=>{
+      const d = parseFloat(l.dataset.depth || 0);
+      l.style.transform = `translate3d(0, ${y * d * -1}px, 0)`;
+    });
+    requestAnimationFrame(parallaxScroll);
+  }
+  requestAnimationFrame(parallaxScroll);
+
+  const heroCard = document.getElementById('heroCard');
+  let rafTilt;
+  function tilt(e){
+    const rect = heroCard.getBoundingClientRect();
+    const cx = rect.left + rect.width/2;
+    const cy = rect.top + rect.height/2;
+    const dx = (e.clientX - cx) / rect.width;
+    const dy = (e.clientY - cy) / rect.height;
+    const rx = dy * -8, ry = dx * 10;
+    heroCard.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+  }
+  window.addEventListener('mousemove', (e)=>{ cancelAnimationFrame(rafTilt); rafTilt = requestAnimationFrame(()=>tilt(e)); }, { passive:true });
+  window.addEventListener('mouseleave', ()=> heroCard.style.transform = 'rotateX(0) rotateY(0)');
+
+  /* ===== Particle background ===== */
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  function sizeCanvas(){
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = innerWidth * dpr;
+    canvas.height = innerHeight * dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  sizeCanvas();
+  addEventListener('resize', sizeCanvas);
+
+  const particles = [];
+  const COUNT = 110;
+  class P {
+    constructor(){
+      this.r = Math.random()*2 + 0.6;
+      this.x = Math.random()*innerWidth;
+      this.y = Math.random()*innerHeight;
+      this.vx = (Math.random()-.5) * 0.25;
+      this.vy = (Math.random()-.5) * 0.25;
+      this.a = Math.random()*0.6 + 0.3;
+    }
+    step(){
+      this.x += this.vx; this.y += this.vy;
+      if(this.x < -10) this.x = innerWidth+10;
+      if(this.x > innerWidth+10) this.x = -10;
+      if(this.y < -10) this.y = innerHeight+10;
+      if(this.y > innerHeight+10) this.y = -10;
+    }
+    draw(){
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(255,255,255,${this.a})`;
+      ctx.fill();
+    }
+  }
+  for(let i=0;i<COUNT;i++) particles.push(new P());
+  (function loop(){
+    ctx.clearRect(0,0,innerWidth,innerHeight);
+    particles.forEach(p=>{ p.step(); p.draw(); });
+    requestAnimationFrame(loop);
+  })();
+
+  /* ===== Cycling quotes ===== */
+  const quotes = [
+    "Your journey to calm starts here.",
+    "Breathe in peace. Exhale worry.",
+    "Every moment is a fresh beginning.",
+    "Small steps, steady heart, brighter days."
+  ];
+  let qi=0;
+  const quoteEl = document.getElementById('quote');
+  setInterval(()=>{ qi=(qi+1)%quotes.length; quoteEl.textContent = quotes[qi]; }, 6000);
+
+  /* ===== Ambient Sounds: one-at-a-time with volume ===== */
+  const btns = document.querySelectorAll('.sound-btn');
+  const audios = {
+    forest: document.getElementById('forest'),
+    rain: document.getElementById('rain'),
+    ocean: document.getElementById('ocean')
+  };
+  const volumeCard = document.getElementById('volumeCard');
+  const volume = document.getElementById('volume');
+  const pauseAll = document.getElementById('pauseAll');
+  const stopAll = document.getElementById('stopAll');
+
+  // Respect autoplay policies: enable audio after first interaction
+  const enableAudioOnce = ()=>{
+    Object.values(audios).forEach(a=> a.load());
+    document.removeEventListener('click', enableAudioOnce);
+    document.removeEventListener('touchstart', enableAudioOnce);
+  };
+  document.addEventListener('click', enableAudioOnce, { once:true });
+  document.addEventListener('touchstart', enableAudioOnce, { once:true });
+
+  function setAllInactive(){
+    btns.forEach(b=> b.classList.remove('active'));
+  }
+  function pauseOthers(except){
+    Object.entries(audios).forEach(([k,a])=>{
+      if(k!==except){ a.pause(); a.currentTime = a.currentTime; }
+    });
+  }
+  function stopAllAudio(){
+    Object.values(audios).forEach(a=>{ a.pause(); a.currentTime = 0; });
+    setAllInactive();
+  }
+
+  btns.forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.dataset.sound;
+      const audio = audios[id];
+      pauseOthers(id);
+      setAllInactive();
+      if(audio.paused){
+        try{
+          audio.volume = parseFloat(volume.value);
+          await audio.play();
+          btn.classList.add('active');
+          volumeCard.style.display = 'block';
+        }catch(e){
+          alert('Tap anywhere on the page first to enable audio, then try again.');
+        }
+      }else{
+        audio.pause();
+        volumeCard.style.display = 'block';
+      }
+    });
+  });
+  volume.addEventListener('input', ()=>{
+    Object.values(audios).forEach(a=> a.volume = parseFloat(volume.value));
+  });
+  pauseAll.addEventListener('click', ()=>{ Object.values(audios).forEach(a=> a.pause()); setAllInactive(); });
+  stopAll.addEventListener('click', ()=>{ stopAllAudio(); });
+
+  // Show volume card when hovering dock on desktop, keep simple on mobile
+  const dock = document.querySelector('.sound-dock');
+  let hoverTimer;
+  dock.addEventListener('mouseenter', ()=>{
+    clearTimeout(hoverTimer);
+    volumeCard.style.display = 'block';
+  });
+  dock.addEventListener('mouseleave', ()=>{
+    hoverTimer = setTimeout(()=> volumeCard.style.display = 'none', 350);
+  });
+
+  // Little animated border on feature cards (rotate hue)
+  let ang = 0;
+  setInterval(()=>{
+    ang = (ang + 3) % 360;
+    document.querySelectorAll('.feature').forEach(f=> f.style.setProperty('--ang', ang+'deg'));
+  }, 60);
+</script>
+</body>
+</html>
